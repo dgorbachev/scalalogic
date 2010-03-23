@@ -7,12 +7,12 @@ import scala.collection._
  */
 trait Lists extends ScalaLogic{
     
-	abstract class ScalaLogicList extends NonVarTerm{
+	abstract class ScalaLogicList(nbVars:Int) extends NonVarTerm(nbVars){
 		def :: (term:Term) = new ListNode(term, this)
 		def toPartialString:String;
 	}
  
-	case class ListNode(elem:Term, next:Term) extends ScalaLogicList{
+	case class ListNode(elem:Term, next:Term) extends ScalaLogicList(elem.nbVars+next.nbVars){
 		override def toString = "["+toPartialString +"]"
 		def toPartialString = elem + nextPartialString
 		def nextPartialString = next match{
@@ -21,7 +21,10 @@ trait Lists extends ScalaLogic{
 		  case _ => "|"+next
 		}
 		
-		override def substitute(f: Var=>Term):ListNode = new ListNode(elem.substitute(f),next.substitute(f))
+		override def substitute(f: Var=>Term):ListNode = {
+		    if(nbVars==0) this
+		    else new ListNode(elem.substitute(f),next.substitute(f))
+		}
 		
 		override def addTo(vars: mutable.Set[Var]) = {
 			elem.addTo(vars)
@@ -35,7 +38,7 @@ trait Lists extends ScalaLogic{
 		}
 	}
 	
-	case object EmptyList extends ScalaLogicList{
+	case object EmptyList extends ScalaLogicList(0){
 		override def toString = "[]"
 		override def toPartialString = ""
 		override def substitute(f: Var=>Term) = this

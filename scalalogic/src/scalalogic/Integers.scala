@@ -9,7 +9,7 @@ trait Integers extends ScalaLogic{
 	 
 	val i = 1
   
-	case class Integer(number:Int) extends NonVarTerm {
+	case class Integer(number:Int) extends NonVarTerm(0) {
 		override def toString = number.toString
 		override def unify(other:Term, unifier:MutableUnifier) = other match{
 		  case Integer(otherNumber) => (number == otherNumber)

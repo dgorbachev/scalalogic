@@ -11,15 +11,18 @@ package scalalogic
  *  <li> | is ::
  * </ul>
  */
-trait DSL extends ScalaLogic with NamedVars with DontCares with Atoms with Lists with Integers{
+trait DSL extends ScalaLogic 
+	with NamedVars with DontCares with Atoms 
+	with Lists with Integers with Unification{
   
   def scalog(clauses:Clause*):Theory = new Theory(clauses.toList)
+  
   def print(solutions:Stream[Unifier]) = if(solutions.isEmpty) println("false.")
                                          else println(solutions mkString "\n")
   
   //Implicits
   
-  implicit def symbol2Predicate(sym:Symbol):Predicate = new Predicate(sym)
+  //implicit def symbol2Predicate(sym:Symbol):Predicate = new Predicate(sym)
   
   implicit def predicate2Clause(pred:Predicate):Clause = new Clause(pred, True)
   
@@ -34,7 +37,14 @@ trait DSL extends ScalaLogic with NamedVars with DontCares with Atoms with Lists
     else if(name.charAt(0).isUpperCase) new NamedVar(Symbol(name))
     else new Atom(Symbol(name))
   
-  implicit def list2ScalogList(list:List[Term]):ScalaLogicList = (list :\ (EmptyList:ScalaLogicList))(ListNode(_,_))
+  // Not sure why this is needed: compiler complains about divergent implicits
+  def Nil = EmptyList
+  
+  implicit def list2ScalogList[A](list: List[A])(implicit elem2Term: A => Term): ScalaLogicList =
+	  (list :\ (EmptyList:ScalaLogicList))(ListNode(_,_))
+	  
+//  implicit def list2ScalogList[T <% Term](list:List[T]):ScalaLogicList = 
+//	  (list :\ (EmptyList:ScalaLogicList))(ListNode(_,_))
   
   class RichTerm(term:Term){
     def :: (leftTerm:Term) = new ListNode(leftTerm,term)
@@ -42,9 +52,11 @@ trait DSL extends ScalaLogic with NamedVars with DontCares with Atoms with Lists
     def > (rightTerm:Term) = new >(term,rightTerm)
     def >= (rightTerm:Term) = new >=(term,rightTerm)
     def <= (rightTerm:Term) = new <=(term,rightTerm)
+    def <>(rightTerm:Term) = new <>(term,rightTerm)
   }
   
   implicit def term2RichTerm(term:Term):RichTerm = new RichTerm(term)
+  
   implicit def symbol2RichTerm(symbol:Symbol):RichTerm = new RichTerm(symbol2Term(symbol))
   
 }

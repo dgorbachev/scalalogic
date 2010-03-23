@@ -6,6 +6,10 @@ package scalalogic
 trait NamedVars extends ScalaLogic {
    
 	case class NamedVar(val symbol:Symbol) extends UnifiableVar {
+	  
 		override def toString = symbol.name
+  
+		override val hashCode = symbol.hashCode
+  
 	}
 }

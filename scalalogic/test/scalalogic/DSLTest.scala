@@ -6,8 +6,8 @@ object DSLTest extends ScalaLogic 	with DSL
   val male = new Predicate('male)
   val singer = new Predicate('singer)
   //or
-  val sings = 'sings
-  val sings_songs = 'sings_songs
+  val sings = new Predicate('sings)
+  val sings_songs = new Predicate('sings_songs)
   
   val singers = scalog(
 	  male('jef),

@@ -1,10 +1,12 @@
 package scalalogic
 
-object AppendTest extends ScalaLogic with DSL 
-								 with Application
+object AppendTest 
+	extends ScalaLogic 
+	with DSL 
+	with Application
 {
   
-  val append = 'append
+  val append = new Predicate('append)
   
   print(
     scalog(

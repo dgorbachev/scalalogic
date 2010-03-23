@@ -5,7 +5,7 @@ package scalalogic
  */
 trait Atoms extends ScalaLogic{
 	 
-	case class Atom(symbol:Symbol) extends NonVarTerm {
+	case class Atom(symbol:Symbol) extends NonVarTerm(0) {
 		override def toString = symbol.name
 		override def unify(other:Term, unifier:MutableUnifier) = other match{
 		  case Atom(otherSymbol) => (symbol == otherSymbol)

@@ -4,9 +4,9 @@ object QuicksortTest extends ScalaLogic with DSL
 									with Application
 {
   
-  val append = 'append
-  val quicksort = 'quicksort
-  val partition = 'partition
+  val append = new Predicate('append)
+  val quicksort = new Predicate('quicksort)
+  val partition = new Predicate('partition)
   
   print(
     scalog(
