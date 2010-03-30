@@ -36,8 +36,8 @@ abstract class PrologParser extends JavaTokenParsers{
 	def predicate: Parser[Predicate] = (
 			"""[a-z]\w*""".r ~ opt("("~>repsep(term,",")<~")") 
 				^^ {
-					case name ~ None => new Predicate(Symbol(name),List())
-					case name ~ Some(arglist) => new Predicate(Symbol(name),arglist)
+					case name ~ None => new Predicate(Symbol(name),0,List())
+					case name ~ Some(arglist) => new Predicate(Symbol(name),arglist.length,arglist)
 			}
 			| failure("Illegal predicate")
 	)

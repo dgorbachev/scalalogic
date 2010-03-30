@@ -1,10 +1,8 @@
-package scalalogic
+package scalalogic.prolog.dsl
 
-object AppendTest 
-	extends ScalaLogic 
-	with DSL 
-	with Application
-{
+import scalalogic._
+
+object AppendTest extends ScalaLogic with DSL with Application{
   
   val append = new Predicate('append)
   

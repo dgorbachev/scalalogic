@@ -1,4 +1,6 @@
-package scalalogic
+package scalalogic.prolog
+
+import scalalogic._
 
 object ParserTest extends PrologParser with Application{
 
@@ -7,23 +9,23 @@ object ParserTest extends PrologParser with Application{
 	val scalaLogic = DefaultScalaLogic
 
 	val theoryString = """
-male(frank).
-male(dean).
-female(ella).
-female(judy).
-acts(frank).
-acts(judy).
-acts(dean).
-sings(frank).
-sings(judy).
-sings(dean).
-sings(ella).
-person(X) :- male(X).
-person(X) :- female(X).
-actor(X) :- male(X),acts(X).
-actress(X) :- female(X), acts(X).
-sang_with(frank, judy).
-sang_with(frank, dean).
+		male(frank).
+		male(dean).
+		female(ella).
+		female(judy).
+		acts(frank).
+		acts(judy).
+		acts(dean).
+		sings(frank).
+		sings(judy).
+		sings(dean).
+		sings(ella).
+		person(X) :- male(X).
+		person(X) :- female(X).
+		actor(X) :- male(X),acts(X).
+		actress(X) :- female(X), acts(X).
+		sang_with(frank, judy).
+		sang_with(frank, dean).
 	""";
  
 	val theoryResult = parseAll(theory,theoryString);

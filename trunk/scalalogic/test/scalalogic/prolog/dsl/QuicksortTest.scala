@@ -1,4 +1,6 @@
-package scalalogic
+package scalalogic.prolog.dsl
+
+import scalalogic._
 
 object QuicksortTest extends ScalaLogic with DSL 
 									with Application

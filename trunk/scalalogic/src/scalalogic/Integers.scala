@@ -19,7 +19,7 @@ trait Integers extends ScalaLogic{
 	}
  
 	class NumberPredicate(symbol:Symbol, op: (Int,Int)=>Boolean, left:Term, right:Term) 
-			extends Predicate(symbol, List(left,right)){
+			extends Predicate(symbol, 2, List(left,right)){
 		override def toString = left+symbol.name+right
 		override def query(theory:Theory) = (left,right) match{
 		  case (Integer(l),Integer(r)) => if(op(l,r)) Stream(immutable.Map.empty) else Stream.empty
