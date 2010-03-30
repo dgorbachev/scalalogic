@@ -1,4 +1,6 @@
-package scalalogic
+package scalalogic.prolog
+
+import scalalogic._
 
 object UnificationTest extends PrologParser with Application{
 

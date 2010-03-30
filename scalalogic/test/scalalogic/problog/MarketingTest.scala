@@ -1,5 +1,6 @@
-package scalalogic
+package scalalogic.problog
 
+import scalalogic._
 import jdd.bdd.BDD;
 
 object MarketingTest extends ScalaLogic with DSL with Application{

@@ -9,23 +9,50 @@ import jdd.bdd.BDD;
 trait ScalaLogic{
 	
 	//Theories and Clauses
-  
+	
   	case class Theory(val clauses: List[Clause]){
+  		
+  	   type Key = (Symbol,Int)
+  	   
+  	   class Index(val clauses: List[Clause]){
 		
-       val index: Map[Symbol,List[Clause]] = {
-    	   val symbols : mutable.Set[Symbol] = mutable.Set() ++ clauses.map(_.head.symbol)
-    	   val mapping:Iterable[(Symbol,List[Clause])] = 
-    	   symbols.map{ symbol =>
-  	       		(symbol,clauses.filter{
-  	       			_.head.symbol == symbol
-  	       		})
-       	   }
-    	   immutable.Map() ++ mapping
+			val termMapping: Map[Term,List[Clause]] = {
+				val firstGroundArgs: Set[Term] = 
+					mutable.Set() ++ clauses.map(_.head.args.head).filter(_.isGround)
+				val nonGroundClauses = clauses.filter(!_.head.args.head.isGround)
+				val mapping = immutable.Map() ++ firstGroundArgs.map{
+					 arg => 
+					 val matchingClauses = clauses.filter{c => !c.head.args.head.isGround || c.head.args.head == arg}
+					 (arg->matchingClauses)
+				 }
+				 mapping.withDefaultValue(nonGroundClauses)
+			 }
+			
+			def clausesFor(terms: List[Term]): List[Clause] = {
+	       		if(terms.isEmpty || !terms.head.isGround) clauses
+	       		else termMapping(terms.head)
+	       	}
+		 
+  	   }
+		
+       val indexes: Map[Key,Index] = {
+    	   val symbols : mutable.Set[Key] = 
+    	  	   mutable.Set() ++ clauses.map(clause => (clause.head.symbol,clause.head.arity))
+    	   val mapping = immutable.Map() ++  symbols.map{ key:Key =>
+	    	   		val index: Index = new Index(clauses.filter{
+	  	       			clause => clause.head.symbol == key._1 && clause.head.arity == key._2
+	  	       		})
+	  	       		(key->index)
+	       }
+    	   val emptyIndex = new Index(Nil)
+    	   mapping.withDefaultValue(emptyIndex)
        }
        
+       //TODO hardwire clause body literals to theory clauses.
        
-       	def clausesFor(goal:Predicate):List[Clause] = index(goal.symbol)
-       
+       	def clausesFor(goal:Predicate):List[Clause] = 
+       		indexes((goal.symbol,goal.arity)).clausesFor(goal.args)
+       		
 		override def toString = clauses.mkString("\n")
   
 		def ?=(formula:Formula) : Stream[Unifier] = formula.query(this)
@@ -90,11 +117,18 @@ trait ScalaLogic{
 	type Renaming = mutable.Map[Var,Var]
  
 	class Clause(val head:Predicate, val body:Formula) {
+		
+		//TODO remove, useless
+		val isGround = head.isGround && body == True
+		
 		override def toString = head + (if (body == True) "." else " :- " + body.toString)
 		
 		def standardizeApart: Clause = {
-		  val renaming:Renaming = mutable.Map.empty
-		  new Clause(head.standardizeApartWith(renaming), body.standardizeApartWith(renaming))
+		  if(isGround) this
+		  else {
+		 	  val renaming:Renaming = mutable.Map.empty
+		 	  new Clause(head.standardizeApartWith(renaming), body.standardizeApartWith(renaming))
+		  }
 		}
 		
 		def query(goal:Predicate, theory:Theory) : Stream[Unifier] = {
@@ -182,7 +216,8 @@ trait ScalaLogic{
 	  def bdd(theory:Theory,env:BDD):Int
 	  def relbdd(theory:Theory,env:BDD):Stream[(Unifier,Int)]
       def substitute(f: Var=>Term):Formula = this
-	  def substitute(unifier:Unifier):Formula = if(unifier.map.isEmpty) this else substitute{unifier.replaceOrKeep _}
+	  def substitute(unifier:Unifier):Formula = 
+	 	  if(unifier.map.isEmpty) this else substitute{unifier.replaceOrKeep _}
 	}
  
 	object True extends Formula{ 
@@ -197,7 +232,10 @@ trait ScalaLogic{
 	  override def relbdd(theory:Theory,env:BDD) = Stream.empty 
 	}
 	
-	class And(first:Formula, second:Formula) extends Formula{
+	class And(first:Formula, makeSecond:Formula) extends Formula{
+		
+	  lazy val second = makeSecond
+		
 	  override def toString = first+","+second
 	  
 	  override def standardizeApartWith(renaming:Renaming) = 
@@ -271,25 +309,37 @@ trait ScalaLogic{
  
 	type MutableUnifier = mutable.Map[Var,Term]
  
-	class Predicate(val symbol:Symbol, val args:List[Term]) extends Formula{
+	class Predicate(val symbol:Symbol, val arity:Int, val args:List[Term]) extends Formula{
 		
 		val nbVars = args.foldLeft(0)(_+_.nbVars)
 	  
-		def this(symbol:Symbol) = this(symbol, Nil)
-		def apply(newArgs:Term*) = new Predicate(symbol, newArgs.toList)
+		def this(symbol:Symbol) = this(symbol, 0, Nil)
+		
+		def apply(newArgs:Term*) = new Predicate(symbol, newArgs.length, newArgs.toList)
+		
 		def := (formula:Formula) = new Clause(this,formula)
+		
 		def vars:Set[Var] = {val set:mutable.Set[Var] = mutable.Set.empty; addTo(set); set}
+		
 		def addTo(vars:mutable.Set[Var]) = args.foreach{_.addTo(vars)}
+		
 		def :: (prob:Double) = new ProbFact(this,prob)
+		
 		def unary_! = new !(this)
+		
 		override def toString = symbol.name + (if (args.isEmpty) "" else args.mkString("(",",",")"))
+		
 		override def query(theory:Theory) = theory ?= this
-		override def substitute(f: Var=>Term):Predicate =
-		  if(nbVars==0) this
-		  else new Predicate(symbol, args.map(_.substitute(f)))
+		
+		def isGround:Boolean = nbVars==0
+		
+		override def substitute(f: Var=>Term):Predicate = {
+		  if(isGround) this
+		  else new Predicate(symbol, arity, args.map(_.substitute(f)))
+		}
 		
 		override def standardizeApartWith(renaming: Renaming):Predicate = 
-			if(nbVars==0) this
+			if(isGround) this
 			else substitute{renaming.getOrElseUpdate(_, new TempVar)}
 	
 		def unify(goal:Predicate):Option[Unifier] = {
@@ -321,6 +371,7 @@ trait ScalaLogic{
 		def substitute(f: Var=>Term):Term
 	    def addTo(vars:mutable.Set[Var])
 		def unify(other:Term, unifier:MutableUnifier):Boolean
+		def isGround:Boolean = nbVars==0
 
 		final def unify(other:Term):Option[Unifier] = {
 			val map: MutableUnifier = mutable.Map.empty

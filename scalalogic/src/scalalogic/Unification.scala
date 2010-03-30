@@ -6,7 +6,7 @@ import jdd.bdd.BDD;
 trait Unification extends ScalaLogic{
   
 	class <>(left:Term, right:Term) 
-			extends Predicate('neq, List(left,right)){
+			extends Predicate('neq, 2, List(left,right)){
 		
 		override def toString = left+" neq "+right
   
