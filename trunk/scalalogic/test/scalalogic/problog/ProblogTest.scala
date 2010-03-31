@@ -32,7 +32,7 @@ object ProblogTest extends ScalaLogic with DSL with Application{
 		  q := d2 & p1 & p2
 		)
   
-		val bdd = theory.bdd(q,env)
+		val bdd = theory.relbddtotal(q,env)
   
 		env.printDot("bdd", bdd)
 		
