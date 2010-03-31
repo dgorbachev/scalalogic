@@ -6,7 +6,7 @@ import jdd.bdd.BDD;
 /**
  * A basic set of features to run Prolog programs in Scala
  */
-trait ScalaLogic{
+trait OldScalaLogic{
 	
 	//Theories and Clauses
 	

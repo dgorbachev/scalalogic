@@ -24,11 +24,6 @@ trait Unification extends ScalaLogic{
 		override def substitute(f: Var=>Term) = new <>(left.substitute(f),right.substitute(f))
 		
 		override def unify(goal:Predicate):Option[Unifier] = None
-	
-		override def bdd(theory:Theory,env:BDD) = left.unify(right) match {
-			  case None => 1
-			  case Some(_) => 0
-		}
   
 		override def relbdd(theory:Theory,env:BDD) = left.unify(right) match {
 			  case None => Stream((new Unifier(mutable.Map.empty),1))
